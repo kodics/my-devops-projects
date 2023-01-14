@@ -1,1 +1,1 @@
-# this repository is for my persional Devops projects
+# This repository is for my persional Devops projects
