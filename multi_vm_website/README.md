@@ -1,16 +1,25 @@
-Multi VM website setup
-using five vm with:
-1. Nginx:
-Web Service
-2. Tomcat
-Application Server
-3. RabbitMQ
-Broker/Queuing Agent
-4. Memcache
-DB Caching
-5. ElasticSearch
-Indexing/Search service
-6. MySQL
-SQL Database
+# Prerequisites
+#
+- JDK 1.8 or later
+- Maven 3 or later
+- MySQL 5.6 or later
 
-automatic setup(iac)
+# Technologies 
+- Spring MVC
+- Spring Security
+- Spring Data JPA
+- Maven
+- JSP
+- MySQL
+# Database
+Here,we used Mysql DB 
+MSQL DB Installation Steps for Linux ubuntu 14.04:
+- $ sudo apt-get update
+- $ sudo apt-get install mysql-server
+
+Then look for the file :
+- /src/main/resources/accountsdb
+- accountsdb.sql file is a mysql dump file.we have to import this dump to mysql db server
+- > mysql -u <user_name> -p accounts < accountsdb.sql
+
+
