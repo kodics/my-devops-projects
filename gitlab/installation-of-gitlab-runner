@@ -1,0 +1,57 @@
+#1:Install Gitlab-Runner on Ubuntu EC2 Instance
+Install GitLab Runner using below command to install latest GitLab Runner visit official GitLab Runner page.
+
+Add the official GitLab repository using below command
+
+$ curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+To Install the latest version of GitLab Runner on Ubuntu EC2 Instance
+
+$ sudo apt-get install gitlab-runner
+
+#2:Grant sudo Permission to GitLab Runner User
+After install GitLab Runner you will see gitlab-runner user in /home directory
+
+Add the gitlab-runner user in sudoers group and set NOPASSWD as shown below
+
+$ sudo visudo
+
+gitlab-runner ALL=(ALL:ALL) ALL
+ubuntu ALL=(ALL:ALL) ALL
+
+#3:Register GitLab Runner to GitLab on Ubuntu
+1. First login to GitLab Server with Username and Password.
+2. Click on your project and select Settings
+3. Navigate to Settings and click on CI/CD inside this click on Expand of Runners section
+4. Copy GitLab server URL and Registration Token
+5. Paste GitLab Server URL and Token in registration command as below
+
+$ gitlab-runner register --name project-name-runner --url https://example.com --registration-token xxxxxxxxxxx
+
+or
+
+sudo gitlab-runner register
+
+or
+
+
+if you want to register gitlab-runner with docker executor then use below command
+
+sudo gitlab-runner register \
+  --non-interactive \
+  --url "GITLAB_SERVER_URL" \
+  --registration-token "REGISTRATION_TOKEN" \
+  --description "docker-runner" \
+  --executor "docker" \
+  --docker-image ubuntu:latest
+
+
+6. Copy above command. Login to GitLab runner server through SSH and paste & run copied command on command line.
+
+Follow the default options until which agent you need to register and then select agent
+
+7. Once you registered Runner for project and Successfully, We have performed GitLab Runner Registration.
+
+
+
+
