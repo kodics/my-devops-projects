@@ -1,0 +1,146 @@
+  Step 1 - Installing Dependencies
+Before we install Gitlab, we need to make sure our server has certain software that Gitlab will need to run properly. Run the following commands to install the dependencies.
+
+$ sudo apt update
+$ sudo apt install ca-certificates curl openssh-server ufw apt-transport-https -y
+
+Step 2 - Change your System's SSH Port
+Gitlab will use port 22 for pushing repositories via SSH. Your server's SSH is also running on it which will generate conflict. There are two ways to go about it. Either you can change the SSH port you use to connect to your system or you can change the port Gitlab will use for SSH. In this tutorial, we are going to change the SSH port for the server itself
+
+$ sudo nano /etc/ssh/sshd_config
+Find the following line and change 22 to 2022 and remove the # in front of it. You can choose any port you want
+Restart the SSH service.
+
+$ sudo systemctl restart sshd
+Close your current SSH session and create a new one with the port 2022 and connect to your server again 
+
+Step 3 - Configuring Firewall
+In our previous step, we installed, ufw (Uncomplicated Firewall). Before we can proceed to install Gitlab, we need to configure it.
+
+Enable SSH and the port we just created so that we don't get locked out.
+
+     sudo ufw allow OpenSSH
+      sudo ufw allow 2022
+      sudo ufw allow http
+      sudo ufw allow https
+      sudo ufw status
+      sudo ufw enable
+      sudo ufw status
+
+Step 4 - Install Docker
+Add Docker's GPG key to your system.
+
+ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+Verify the fingerprint of the downloaded key
+     sudo apt-key fingerprint 0EBFCD88
+
+You should see an output like the following.
+
+pub   rsa4096 2017-02-22 [SCEA]
+      9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
+uid           [ unknown] Docker Release (CE deb) <docker@docker.com>
+sub   rsa4096 2017-02-22 [S]
+
+Add the Docker repository.
+     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+   
+Update your package database.
+  sudo apt update
+install Docker-CE. CE is the Community Edition of the Docker.  
+ sudo apt install docker-ce -y
+   sudo systemctl status docker
+ 
+Add your limited Linux user account to the docker group so that you can run docker without sudo
+$USER variable will pick and add the current logged in user to the docker group. Replace $USER with the actual username if you are not currently logged in with that user.
+  sudo usermod -aG docker $USER
+   
+Switch to the user we just added. Even though you were already logged in, you will still need to switch to it again to reload the permissions.
+
+$ su - ${USER}
+
+Check that everything is running fine by running the built-in "Hello World" program.
+
+$ docker run hello-world
+
+Verify the installation
+   docker images
+ 
+Step 5 - Install Docker Compose
+It's possible to skip this step and proceed but having Docker Compose installed will make running Gitlab much easier especially if you want to do it on more than one server.
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+Apply executable permissions to the docker compose binary.
+
+$ sudo chmod +x /usr/local/bin/docker-compose
+
+Add Command Completion to Docker Compose.
+
+$ sudo curl -L https://raw.githubusercontent.com/docker/compose/1.24.1/contrib/completion/bash/docker-compose -o /etc/bash_completion.d/docker-compose
+   
+Verify if your installation was successful.
+
+$ docker-compose --version
+
+Step 6 - Install Gitlab
+Download Gitlab's Docker image from Dockerhub. This image contains everything you need to run Docker - nginx, PostgreSQL, Redis, etc. Run the following command to download the image.
+
+$ docker pull gitlab/gitlab-e:latest
+
+check all the images currently on your system.
+
+$ docker images
+
+Step 7 - Run Gitlab
+We can run Gitlab container straight away at this point by supplying all the options in a single command but that would mean every time you need to run the container, you need to supply these variables. Docker Compose makes this process easier as it will allow you to save the configuration into a .yml file which will be then used to run and launch the container.
+
+Create a docker-compose.yml.
+
+$ nano docker-compose.yml
+
+Paste the following code
+ 
+
+version: '3.6'
+services:
+  web:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name: 'gitlab-server'
+    restart: always
+    hostname: 'gitlab.example.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.example.com'
+        gitlab_rails['smtp_enable'] = true
+        gitlab_rails['smtp_address'] = "smtp.gmail.com"
+        gitlab_rails['smtp_port'] = 587
+        gitlab_rails['smtp_user_name'] = "user@gmail.com"
+        gitlab_rails['smtp_password'] = "app-password"
+        gitlab_rails['smtp_domain'] = "smtp.gmail.com"
+        gitlab_rails['smtp_authentication'] = "login"
+        gitlab_rails['smtp_enable_starttls_auto'] = true
+        gitlab_rails['smtp_tls'] = false
+        gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+        # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '80:80'
+      - '443:443'
+      - '22:22'
+      - '587:587'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
+    shm_size: '256m'
+
+
+Make sure you are in the same directory as docker-compose.yml. Run the following command to start Gitlab.
+
+$ docker-compose up -d
+
+Load the Gitlab site in your browser. If you try to load it too shortly after starting the container, you will get the 502 error. If that happens, wait for a few more minutes and try again.
+
+If everything is fine, then you will see the following page in your browser.
+
+You’ll be greeted by the GitLab login screen, where you’ll type the username root and paste the password you found in the intial_root_password file
