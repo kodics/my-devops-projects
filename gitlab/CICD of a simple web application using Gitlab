@@ -1,0 +1,58 @@
+Step 1. — Creating the GitLab Repository
+
+Give it a proper Project name.
+Optionally add a Project description.
+Make sure to set the Visibility Level to Private or Public depending on your requirements.
+Finally click Create project
+
+Step 2. Setting Up an SSH Key
+
+$ ssh-keygen
+To authorize the SSH key for the deployer user, you need to append the public key to the authorized_keys file
+$ cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+
+Step 3 — Storing the Private Key in a GitLab CI/CD Variable
+
+You are going to store the SSH private key in a GitLab CI/CD file variable, so that the pipeline can make use of the key to log in to the server.
+While you’re in the variables section, you’ll also add a variable for the server IP and the server user, which will inform the pipeline about the destination server and user to log in.
+Start by showing the SSH private key
+$ cat ~/.ssh/id_rsa
+Now navigate to Settings > CI / CD > Variables in your GitLab project and click Add Variable. Fill out the form for three variables
+ID_RSA-Paste your SSH private key, SERVER_IP-your_server_IP, SERVER_USER-user
+
+
+Step 4 — Configuring the .gitlab-ci.yml File
+
+Now you’re going to create the .gitlab-ci.yml file that contains the pipeline configuration. In GitLab, go to the Project overview page, click the + button and select New file. Then set the File name to .gitlab-ci.yml.
+(Alternatively you can clone the repository and make all following changes to .gitlab-ci.yml on your local machine, then commit and push to the remote repository.)
+The .gitlab-ci.yml file is a YAML file that organizes specific instructions for GitLab CI/CD.
+To create a .gitlab-ci.yml file:paste the following
+
+deploy:
+  stage: deploy
+  before script
+         before_script:
+  - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )'
+  #The ssh-agent command outputs commands to set ce - cp -r * .public
+  #rtain environment variables in the shell
+  - eval $(ssh-agent -s)
+ #The eval command tells the shell to run the output of ssh-agent as shell commands
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+#"$SSH_PRIVATE_KEY" in this we added private key in variable
+  - mkdir -p ~/.ssh
+#create a directory
+  - chmod 700 ~/.ssh
+# usually the tools which use that directory will ask you to assign permissions to it:
+  - ssh-keyscan $EC2_IPADDRESS >> ~/.ssh/known_hosts
+ #"$EC2_IPADDRESS" in this we added our instance ip_address in variable
+  - chmod 644 ~/.ssh/known_hosts
+#this is key file permission 
+
+script:
+    - ssh -i $STAGE_ID_RSA -o StrictHostKeyChecking=no $STAGE_SERVER_USER@$STAGE_SERVER_IP "paste the deployment code or script here"
+    
+    When done, click Commit changes and wait for the commit to complete. The pipeline then starts automatically    
+    
+    
+    
