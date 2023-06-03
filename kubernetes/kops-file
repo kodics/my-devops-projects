@@ -1,8 +1,14 @@
 kops create cluster --name=prestashop.kodicsglobal.com \ 
---state=s3://vprofile-kop-states --zones=us-east-2a,us-east-2b \ 
---node-count=2 --node-size=t3.small --master-size=t3.medium --dns-zone=kubevpro.groophy.in \ 
+--state=s3://presta-kops-state --zones=us-east-1a, us-east-1b \ 
+--node-count=2 --node-size=t2.micro --master-size=t2.micro --dns-zone=prestashop.kodicsglobal.com \ 
 --node-volume-size=8 --master-volume-size=8
 
-kops update cluster --name prestashop.kodicsglobal.com --state=s3://vprofile-kop-states --yes --admin
+kops update cluster --name prestashop.kodicsglobal.com --state=s3://prestas3 --yes --admin
 
-kops delete cluster --name prestashop.kodicsglobal.com --state=s3://vprofile-kop-states --yes --admin
+kops delete cluster --name prestashop.kodicsglobal.com --state=s3://prestas3 --yes --admin
+
+
+List your clusters with: kops get cluster
+Edit this cluster with: kops edit cluster useast1.dev.example.com
+Edit your node instance group: kops edit ig --name=useast1.dev.example.com nodes
+Edit your master instance group: kops edit ig --name=useast1.dev.example.com master-us-east-1c
